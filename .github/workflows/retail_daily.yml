@@ -13,7 +13,7 @@ jobs:
     env:
       PROJECT: retail
       EMIT_LINEAGE: "1"
-      OPENLINEAGE_URL: https://47c932de9342.ngrok-free.app/api/lineage   # <- set to your ingest URL
+      OPENLINEAGE_URL: https://47c932de9342.ngrok-free.app/api/lineage/   # <- set to your ingest URL
       CI: "true"
       # If you add auth later:
       # OPENLINEAGE_API_KEY: ${{ secrets.RETAIL_API_KEY }}
