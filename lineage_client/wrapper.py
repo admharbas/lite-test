@@ -4,7 +4,7 @@ from functools import wraps
 from pathlib import Path
 
 def _post_event(evt: dict):
-    url = os.getenv("OPENLINEAGE_URL", "http://localhost:8000/api/v1/lineage/")
+    url = os.getenv("OPENLINEAGE_URL")
     # use json=evt instead of data=... + manual header
     requests.post(url, json=evt, timeout=15)
 
