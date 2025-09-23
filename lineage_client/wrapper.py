@@ -1,15 +1,15 @@
-import os, uuid, json, datetime as dt, requests
+# lineage_client/wrapper.py
+import os, uuid, datetime as dt, requests
 from functools import wraps
 from pathlib import Path
 
 def _post_event(evt: dict):
-    url = os.getenv("OPENLINEAGE_URL", "http://localhost:8000/api/v1/lineage")
-    headers = {"Content-Type": "application/json"}
-    # If/when you add auth: headers["Authorization"] = f"Bearer {os.getenv('OPENLINEAGE_API_KEY')}"
-    requests.post(url, headers=headers, data=json.dumps(evt), timeout=15)
+    url = os.getenv("OPENLINEAGE_URL", "http://localhost:8000/api/v1/lineage/")
+    # use json=evt instead of data=... + manual header
+    requests.post(url, json=evt, timeout=15)
 
 def _mk_event(event_type, run_id, job_name, project, inputs, outputs):
-    ns = project  # simple: namespace == project (e.g., "retail")
+    ns = project
     to_ds = lambda paths: [{"namespace": ns, "name": p} for p in paths]
     return {
         "eventType": event_type,
@@ -19,14 +19,13 @@ def _mk_event(event_type, run_id, job_name, project, inputs, outputs):
         "inputs": to_ds(inputs),
         "outputs": to_ds(outputs),
         "producer": "https://openlineage.io/python",
-        "facets": {"source": {"mode": "ci" if os.getenv("CI") == "true" else "local"}},
     }
 
 def with_lineage(job_name: str, inputs: list[str], outputs: list[str]):
-    """Emit START/COMPLETE/FAIL when EMIT_LINEAGE=1."""
     def deco(fn):
         @wraps(fn)
         def run(*args, **kwargs):
+            import uuid
             emit = os.getenv("EMIT_LINEAGE") == "1"
             project = os.getenv("PROJECT", "retail")
             run_id = str(uuid.uuid4())
