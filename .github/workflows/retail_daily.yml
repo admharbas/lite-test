@@ -1,0 +1,29 @@
+name: retail_daily
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+  # optional schedule (UTC):
+  # schedule:
+  #   - cron: "0 6 * * *"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT: retail
+      EMIT_LINEAGE: "1"
+      OPENLINEAGE_URL: https://47c932de9342.ngrok-free.app/api/lineage   # <- set to your ingest URL
+      CI: "true"
+      # If you add auth later:
+      # OPENLINEAGE_API_KEY: ${{ secrets.RETAIL_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Install deps
+        run: |
+          pip install -r projects/retail/requirements.txt
+          pip install -e .
+      - name: Run pipeline (emits OpenLineage)
+        run: python projects/retail/pipelines/daily_sales.py
